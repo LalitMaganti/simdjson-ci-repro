@@ -14,6 +14,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
+    - name: Runner hardware
+      run: nproc; free -g | head -2; lscpu | grep -E 'Model name|Thread|Core|Socket'
     - name: Configure (as ubuntu24-sani.yml, address sanitizer)
       run: "mkdir builddebug && cd builddebug\ncmake -DSIMDJSON_SANITIZE=ON -DCMAKE_BUILD_TYPE=Debug -DSIMDJSON_GOOGLE_BENCHMARKS=OFF \\\n  -DSIMDJSON_DEVELOPER_MODE=ON -DBUILD_SHARED_LIBS=OFF ..\n"
     - uses: LalitMaganti/buildprof@v0.2.8
