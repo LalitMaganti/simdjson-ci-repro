@@ -11,6 +11,9 @@ jobs:
         variant:
         - before
         - after
+        mode:
+        - untraced
+        - traced
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
@@ -18,9 +21,19 @@ jobs:
       run: nproc; free -g | head -2; lscpu | grep -E 'Model name|Thread|Core|Socket'
     - name: Configure (as ubuntu24-sani.yml, address sanitizer)
       run: "mkdir builddebug && cd builddebug\ncmake -DSIMDJSON_SANITIZE=ON -DCMAKE_BUILD_TYPE=Debug -DSIMDJSON_GOOGLE_BENCHMARKS=OFF \\\n  -DSIMDJSON_DEVELOPER_MODE=ON -DBUILD_SHARED_LIBS=OFF ..\n"
+    - name: Build (untraced, timed)
+      if: matrix.mode == 'untraced'
+      shell: bash
+      run: 'cd builddebug
+
+        if [ "${{ matrix.variant }}" = after ]; then export CMAKE_BUILD_PARALLEL_LEVEL=4; fi
+
+        cmake --build .
+
+        '
     - uses: LalitMaganti/buildprof@v0.2.8
       with:
-        artifact-name: simdjson-${{ matrix.variant }}
+        artifact-name: simdjson-${{ matrix.variant }}-${{ matrix.mode }}
         command: 'cd builddebug
 
           if [ "${{ matrix.variant }}" = after ]; then export CMAKE_BUILD_PARALLEL_LEVEL=4; fi
@@ -28,3 +41,4 @@ jobs:
           cmake --build .
 
           '
+      if: matrix.mode == 'traced'
